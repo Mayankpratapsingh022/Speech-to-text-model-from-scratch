@@ -4,3 +4,4 @@ transformers
 pandas
 tensorboard
 tokenizers
+torchcodec

@@ -35,6 +35,11 @@ The model (`transcribe.py`) consists of three main components:
 
 2.  Install dependencies:
     ```bash
+    apt-get update && apt-get install -y ffmpeg
+    ```
+
+
+    ```bash
     pip install -r requirements.txt
     ```
 

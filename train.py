@@ -24,10 +24,11 @@ def train_model():
     # Current setup: <ctc_blank> is added special token.
     # If not explicitly found, fallback to <pad> or 0.
     # Let's try to find <ctc_blank>.
-    blank_token = tokenizer.token_to_id(config.CTC_BLANK_TOKEN)
-    if blank_token is None:
+    blank_token = tokenizer.convert_tokens_to_ids(config.CTC_BLANK_TOKEN)
+    # convert_tokens_to_ids returns unk_token_id if token not found
+    if blank_token == tokenizer.unk_token_id:
         print(f"Warning: {config.CTC_BLANK_TOKEN} not found, using pad token as blank.")
-        blank_token = tokenizer.token_to_id(config.PAD_TOKEN)
+        blank_token = tokenizer.convert_tokens_to_ids(config.PAD_TOKEN)
 
     device = torch.device(config.DEVICE)
     print(f"Using device: {device}")
