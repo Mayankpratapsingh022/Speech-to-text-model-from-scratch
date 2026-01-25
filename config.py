@@ -31,9 +31,9 @@ print(f"Using device: {DEVICE}")
 
 # --- Text Config ---
 # Special tokens already handled by tokenizer files, but good to have reference if needed
-PAD_TOKEN = "<pad>"
-UNK_TOKEN = "<unk>"
-CTC_BLANK_TOKEN = "<ctc_blank>"
+PAD_TOKEN = "▁"
+UNK_TOKEN = "<unk>" # default for BPE if needed, though char-level usually covers all chars in whitelist
+CTC_BLANK_TOKEN = "▁"
 
 # --- Model Config ---
 INPUT_CHANNELS = 1

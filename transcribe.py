@@ -12,7 +12,7 @@ class TranscribeModel(nn.Module):
         num_codebooks: int = config.NUM_CODEBOOKS,
         codebook_size: int = config.CODEBOOK_SIZE,
         embedding_dim: int = config.EMBEDDING_DIM,
-        vocab_size: int = 50257+100, # Approximate for GPT2 + special tokens. 
+        vocab_size: int = 50, # Defaulting to small number, but should be passed explicitly from tokenizer
         # Ideally, vocab_size should be dynamic or passed from tokenizer.
         # We will default to a safely large number or update init to require it.
         # For now, let's allow it to be passed or default to config if present.

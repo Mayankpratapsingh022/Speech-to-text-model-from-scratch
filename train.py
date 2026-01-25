@@ -20,15 +20,12 @@ def train_model():
 
     # Tokenizer & Special Tokens
     tokenizer = get_tokenizer()
-    # We need to know which token ID is the blank. 
-    # Current setup: <ctc_blank> is added special token.
-    # If not explicitly found, fallback to <pad> or 0.
-    # Let's try to find <ctc_blank>.
-    blank_token = tokenizer.convert_tokens_to_ids(config.CTC_BLANK_TOKEN)
-    # convert_tokens_to_ids returns unk_token_id if token not found
-    if blank_token == tokenizer.unk_token_id:
-        print(f"Warning: {config.CTC_BLANK_TOKEN} not found, using pad token as blank.")
-        blank_token = tokenizer.convert_tokens_to_ids(config.PAD_TOKEN)
+    # We need to know which token ID is the blank.
+    # Current setup: "▁" is the blank/pad token.
+    blank_token = tokenizer.token_to_id(config.CTC_BLANK_TOKEN)
+    if blank_token is None:
+        print(f"Warning: {config.CTC_BLANK_TOKEN} not found, using 0 as fallback.")
+        blank_token = 0
 
     device = torch.device(config.DEVICE)
     print(f"Using device: {device}")
@@ -46,7 +43,7 @@ def train_model():
             num_codebooks=config.NUM_CODEBOOKS,
             codebook_size=config.CODEBOOK_SIZE,
             embedding_dim=config.EMBEDDING_DIM,
-            vocab_size=len(tokenizer),
+            vocab_size=tokenizer.get_vocab_size(),
             strides=config.STRIDES,
             initial_mean_pooling_kernel_size=config.INITIAL_POOLING_KERNEL,
             num_transformer_layers=config.NUM_LAYERS,

@@ -4,8 +4,8 @@ import torchaudio
 import pandas as pd
 from torch.utils.data import Dataset, DataLoader, random_split
 from torch.nn.utils.rnn import pad_sequence
-import config
 from tokenizer import get_tokenizer
+import config
 
 class LJSpeechDataset(Dataset):
     """
@@ -55,11 +55,10 @@ class LJSpeechDataset(Dataset):
         # but configured for correct sample rate.
         
         # Text Tokenization
-        # self.tokenizer is expected to be the GPT2Tokenizer compatible instance
-        # we treat text as target.
-        encoded = self.tokenizer(text, return_attention_mask=False) 
-        # encoded is a dict or BatchEncoding. We need 'input_ids'.
-        input_ids = torch.tensor(encoded['input_ids'], dtype=torch.long)
+        # self.tokenizer is now the tokenizers.Tokenizer instance
+        encoded = self.tokenizer.encode(text) 
+        # encoded has .ids attribute
+        input_ids = torch.tensor(encoded.ids, dtype=torch.long)
         
         return {
             "file_id": file_id,
@@ -126,7 +125,11 @@ class VoiceCollator:
         padded_audio = pad_sequence(audio_list, batch_first=True, padding_value=0.0)
         
         # Pad IDs
-        pad_id = self.tokenizer.pad_token_id if self.tokenizer.pad_token_id is not None else 0
+        pad_id = self.tokenizer.token_to_id(config.PAD_TOKEN)
+        # If not found, default to 0 (but it should be found)
+        if pad_id is None:
+            pad_id = 0
+            
         padded_input_ids = pad_sequence(input_ids_list, batch_first=True, padding_value=pad_id)
         
         return {
