@@ -8,7 +8,7 @@ WAVS_DIR = os.path.join(DATASET_DIR, "wavs")
 METADATA_PATH = os.path.join(DATASET_DIR, "metadata.csv")
 
 # Tokenizer path (saved directory)
-TOKENIZER_PATH = os.path.join(PROJECT_ROOT, "tokenizer")
+TOKENIZER_PATH = os.path.join(PROJECT_ROOT, "tokenizer.json")
 
 # --- Audio Config ---
 SAMPLE_RATE = 16000  # Target sample rate (LJSpeech is 22050Hz, usually resampled to 16k for STT)
