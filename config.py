@@ -3,9 +3,12 @@ import os
 # --- Paths ---
 # Assuming the script is run from the project root
 PROJECT_ROOT = os.getcwd()
-DATASET_DIR = os.path.join(PROJECT_ROOT, "LJSpeech-1.1")
-WAVS_DIR = os.path.join(DATASET_DIR, "wavs")
-METADATA_PATH = os.path.join(DATASET_DIR, "metadata.csv")
+DATASET_DIR = os.path.join(PROJECT_ROOT, "LJSpeech-1.1")  # Legacy, not used anymore
+WAVS_DIR = os.path.join(DATASET_DIR, "wavs")  # Legacy, not used anymore
+METADATA_PATH = os.path.join(DATASET_DIR, "metadata.csv")  # Legacy, not used anymore
+
+# --- Hugging Face Dataset Config ---
+HF_DATASET_NAME = "m-aliabbas/idrak_timit_subsample1"
 
 # Tokenizer path (saved directory)
 TOKENIZER_PATH = os.path.join(PROJECT_ROOT, "tokenizer.json")
