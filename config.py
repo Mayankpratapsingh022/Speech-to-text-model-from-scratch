@@ -27,9 +27,16 @@ MAX_AUDIO_LENGTH = 16000 * 10  # e.g., limit to 10 seconds to avoid OOM (optiona
 TRAIN_SPLIT = 0.9
 VAL_SPLIT = 0.1
 
+# --- Overfit Config ---
+OVERFIT_MODE = True
+OVERFIT_NUM_EXAMPLES = 10
+OVERFIT_MAX_TEXT_LENGTH = 50 # Relaxed from 15 to find examples
+
+
 # --- Device Config ---
 import torch
-DEVICE = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
+DEVICE = "cpu"
+# "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
 print(f"Using device: {DEVICE}")
 
 # --- Text Config ---
@@ -42,14 +49,14 @@ CTC_BLANK_TOKEN = "▁"
 INPUT_CHANNELS = 1
 HIDDEN_DIM = 16
 EMBEDDING_DIM = 32
-STRIDES = (6, 8, 4, 2)
+STRIDES = (2, 2, 2, 2)
 KERNEL_SIZE = 8
 INITIAL_POOLING_KERNEL = 2
 
 # --- Transformer Config ---
 NUM_HEADS = 4
 NUM_LAYERS = 6
-MAX_SEQ_LENGTH = 1000  # Max length of downsampled sequence (audio)
+MAX_SEQ_LENGTH = 10000  # Max length of downsampled sequence (audio)
 FF_HIDDEN_MULT = 4
 DROPOUT = 0.1
 
@@ -64,7 +71,7 @@ VQ_WARMUP_STEPS = 1000
 VQ_FINAL_LOSS_WEIGHT = 0.5
 NUM_EPOCHS = 1000
 NUM_BATCH_REPEATS = 1
-LEARNING_RATE = 0.005
+LEARNING_RATE = 0.0005
 MODEL_ID = "test37"
 LOG_DIR = f"runs/{MODEL_ID}"
 MODELS_DIR = f"models/{MODEL_ID}"

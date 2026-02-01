@@ -14,7 +14,7 @@ class HuggingFaceSpeechDataset(Dataset):
     Dataset class for Hugging Face speech datasets.
     Loads audio and text from Hugging Face datasets.
     """
-    def __init__(self, dataset_name, tokenizer, sample_rate=16000, split="train", transform=None):
+    def __init__(self, dataset_name, tokenizer, sample_rate=16000, split="train", transform=None, max_examples=None, max_text_length=None):
         # Load dataset from Hugging Face
         dataset = load_dataset(dataset_name)
         
@@ -33,6 +33,37 @@ class HuggingFaceSpeechDataset(Dataset):
             # It's already a Dataset
             self.dataset = dataset
         
+        # --- Filtering for Overfit/Debug ---
+        if max_text_length is not None or max_examples is not None:
+            filtered_indices = []
+            count = 0
+            # Simple iteration to find suitable examples
+            # Note: This might be slow on huge datasets, but okay for small debug runs
+            for i in range(len(self.dataset)):
+                item = self.dataset[i]
+                text = item.get("text", item.get("transcription", item.get("sentence", "")))
+                if text is None: text = ""
+                
+                # Filter by length
+                if max_text_length is not None and len(text) > max_text_length:
+                    # Debug: print sample that was skipped occasionally
+                    if i % 100 == 0: 
+                        print(f"Skipping index {i}, len {len(text)} > {max_text_length}: '{text[:20]}...'")
+                    continue
+                
+                # If we passed filters, keep it
+                print(f"Found suitable example at {i}: '{text}' (len={len(text)})")
+                filtered_indices.append(i)
+                count += 1
+                
+                # Stop if we have enough
+                if max_examples is not None and count >= max_examples:
+                    break
+            
+            # Select only the filtered indices
+            self.dataset = self.dataset.select(filtered_indices)
+            print(f"Dataset filtered to {len(self.dataset)} examples (max_len={max_text_length})")
+
         # Cast audio column to Audio with decoding
         self.dataset = self.dataset.cast_column("audio", Audio(decode=True))
         
@@ -69,6 +100,7 @@ class HuggingFaceSpeechDataset(Dataset):
         text = item.get("text", item.get("transcription", item.get("sentence", "")))
         if text is None:
             text = ""
+        text = text.upper()
         
         # Get file_id if available, otherwise use index
         file_id = item.get("file", item.get("id", f"sample_{idx}"))
@@ -163,6 +195,10 @@ def get_dataloaders(batch_size=config.BATCH_SIZE, num_workers=config.NUM_WORKERS
     # 1. Load Tokenizer
     tokenizer = get_tokenizer(save_path=config.TOKENIZER_PATH)
     
+    # Overfit settings
+    max_examples = config.OVERFIT_NUM_EXAMPLES if config.OVERFIT_MODE else None
+    max_text_length = config.OVERFIT_MAX_TEXT_LENGTH if config.OVERFIT_MODE else None
+
     # 2. Initialize Datasets - try to get train/val splits if available, otherwise split manually
     try:
         # Try to load train and validation splits directly
@@ -170,13 +206,17 @@ def get_dataloaders(batch_size=config.BATCH_SIZE, num_workers=config.NUM_WORKERS
             dataset_name=dataset_name,
             tokenizer=tokenizer,
             sample_rate=config.SAMPLE_RATE,
-            split="train"
+            split="train",
+            max_examples=max_examples,
+            max_text_length=max_text_length
         )
         val_dataset = HuggingFaceSpeechDataset(
             dataset_name=dataset_name,
             tokenizer=tokenizer,
             sample_rate=config.SAMPLE_RATE,
-            split="validation"
+            split="validation",
+             max_examples=max_examples, # Also filter val for overfit speed? Maybe just small val.
+             max_text_length=max_text_length
         )
     except (ValueError, KeyError, Exception):
         # If splits don't exist or there's an error, load full dataset and split manually
@@ -186,7 +226,9 @@ def get_dataloaders(batch_size=config.BATCH_SIZE, num_workers=config.NUM_WORKERS
                 dataset_name=dataset_name,
                 tokenizer=tokenizer,
                 sample_rate=config.SAMPLE_RATE,
-                split="train"  # Will fallback to first available split if "train" doesn't exist
+                split="train",  # Will fallback to first available split if "train" doesn't exist
+                max_examples=max_examples,
+                max_text_length=max_text_length
             )
         except Exception:
             # If that fails, try loading the dataset directly and let it handle the split
@@ -199,7 +241,9 @@ def get_dataloaders(batch_size=config.BATCH_SIZE, num_workers=config.NUM_WORKERS
                     dataset_name=dataset_name,
                     tokenizer=tokenizer,
                     sample_rate=config.SAMPLE_RATE,
-                    split=first_split
+                    split=first_split,
+                    max_examples=max_examples,
+                    max_text_length=max_text_length
                 )
             else:
                 raise ValueError(f"Could not load dataset {dataset_name} with any split")

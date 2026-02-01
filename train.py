@@ -79,6 +79,15 @@ def train_model():
                 # input_ids: (B, T_text)
                 target = batch["input_ids"].to(device)
 
+                # Fix: Pad audio if target is longer than audio (Time dimension)
+                # This ensures CTC loss doesn't fail due to input_length < target_length
+                # Audio shape: (B, T) or (B, 1, T) - here we assume (B, T) from collate/loader
+                if target.shape[1] > audio.shape[1]:
+                    print(f"Warning: Padding audio {audio.shape} to match target {target.shape}")
+                    diff = target.shape[1] - audio.shape[1]
+                    # F.pad pads the last dimension by default: (padding_left, padding_right)
+                    audio = torch.nn.functional.pad(audio, (0, diff))
+
                 # Ensure audio is at least as long as target along time for CTC sanity
                 # Note: Model downsamples audio! 
                 # Target length is num_tokens. Output length is T / downsample_factor.
